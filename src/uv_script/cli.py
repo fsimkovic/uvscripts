@@ -5,9 +5,9 @@ from __future__ import annotations
 import argparse
 import sys
 
-from uvscripts import __version__
-from uvscripts.config import ConfigError, ScriptDef, load_scripts
-from uvscripts.runner import run_script
+from uv_script import __version__
+from uv_script.config import ConfigError, ScriptDef, load_scripts
+from uv_script.runner import run_script
 
 
 def main(argv: list[str] | None = None) -> None:

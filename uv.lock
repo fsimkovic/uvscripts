@@ -211,7 +211,7 @@ wheels = [
 ]
 
 [[package]]
-name = "uvscripts"
+name = "uv-script"
 version = "0.1.4"
 source = { editable = "." }
 

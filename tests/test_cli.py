@@ -1,10 +1,10 @@
-"""Tests for uvscripts.cli."""
+"""Tests for uv_script.cli."""
 
 from unittest.mock import patch
 
 import pytest
 
-from uvscripts.cli import main
+from uv_script.cli import main
 
 
 @pytest.fixture
@@ -68,7 +68,7 @@ class TestNoScript:
 
 
 class TestRunIntegration:
-    @patch("uvscripts.runner.subprocess.run")
+    @patch("uv_script.runner.subprocess.run")
     def test_run_script(self, mock_run, in_project):
         mock_run.return_value.returncode = 0
         with pytest.raises(SystemExit) as exc_info:
@@ -77,7 +77,7 @@ class TestRunIntegration:
         call_args = mock_run.call_args[0][0]
         assert call_args == ["uv", "run", "pytest", "tests/"]
 
-    @patch("uvscripts.runner.subprocess.run")
+    @patch("uv_script.runner.subprocess.run")
     def test_extra_args_with_separator(self, mock_run, in_project):
         mock_run.return_value.returncode = 0
         with pytest.raises(SystemExit) as exc_info:

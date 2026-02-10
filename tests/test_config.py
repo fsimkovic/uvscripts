@@ -1,8 +1,8 @@
-"""Tests for uvscripts.config."""
+"""Tests for uv_script.config."""
 
 import pytest
 
-from uvscripts.config import ConfigError, ScriptDef, _parse_script, find_pyproject, load_scripts
+from uv_script.config import ConfigError, ScriptDef, _parse_script, find_pyproject, load_scripts
 
 
 class TestParseScript:

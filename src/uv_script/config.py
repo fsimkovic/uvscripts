@@ -18,6 +18,14 @@ class ScriptDef:
     is_composite: bool = False
 
 
+@dataclass
+class UvsConfig:
+    """Top-level configuration from [tool.uvs]."""
+
+    scripts: dict[str, ScriptDef]
+    editable: list[str] = field(default_factory=list)
+
+
 class ConfigError(Exception):
     """Raised when pyproject.toml is missing or malformed."""
 
@@ -32,24 +40,36 @@ def find_pyproject(start: Path | None = None) -> Path:
     raise ConfigError("No pyproject.toml found in current directory or any parent")
 
 
-def load_scripts(pyproject_path: Path | None = None) -> dict[str, ScriptDef]:
-    """Load and normalize all script definitions.
+def load_config(pyproject_path: Path | None = None) -> UvsConfig:
+    """Load the full [tool.uvs] configuration.
 
-    Returns dict mapping script name -> ScriptDef.
+    Paths in 'editable' are resolved relative to the pyproject.toml directory.
     """
     path = pyproject_path or find_pyproject()
+    project_dir = path.parent
 
     with open(path, "rb") as f:
         data = tomllib.load(f)
 
-    scripts_table = data.get("tool", {}).get("uvs", {}).get("scripts", {})
+    uvs_table = data.get("tool", {}).get("uvs", {})
+    scripts_table = uvs_table.get("scripts", {})
     if not scripts_table:
         raise ConfigError(f"No [tool.uvs.scripts] section found in {path}")
 
-    result: dict[str, ScriptDef] = {}
+    scripts: dict[str, ScriptDef] = {}
     for name, value in scripts_table.items():
-        result[name] = _parse_script(name, value)
-    return result
+        scripts[name] = _parse_script(name, value)
+
+    raw_editable = uvs_table.get("editable", [])
+    if not isinstance(raw_editable, list):
+        raise ConfigError("'editable' must be an array of path strings")
+    editable: list[str] = []
+    for entry in raw_editable:
+        if not isinstance(entry, str):
+            raise ConfigError(f"'editable' items must be strings, got: {entry!r}")
+        editable.append(str((project_dir / entry).resolve()))
+
+    return UvsConfig(scripts=scripts, editable=editable)
 
 
 def _parse_script(name: str, value: str | list | dict) -> ScriptDef:

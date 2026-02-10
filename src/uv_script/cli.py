@@ -6,7 +6,7 @@ import argparse
 import sys
 
 from uv_script import __version__
-from uv_script.config import ConfigError, ScriptDef, load_scripts
+from uv_script.config import ConfigError, ScriptDef, load_config
 from uv_script.runner import run_script
 
 
@@ -34,6 +34,11 @@ def main(argv: list[str] | None = None) -> None:
         help="Print commands before executing",
     )
     parser.add_argument(
+        "--no-editable",
+        action="store_true",
+        help="Ignore editable installs from config",
+    )
+    parser.add_argument(
         "script",
         nargs="?",
         metavar="SCRIPT",
@@ -49,10 +54,12 @@ def main(argv: list[str] | None = None) -> None:
     parsed = parser.parse_args(argv)
 
     try:
-        scripts = load_scripts()
+        config = load_config()
     except ConfigError as e:
         print(f"uvs: {e}", file=sys.stderr)
         sys.exit(1)
+
+    scripts = config.scripts
 
     if parsed.list:
         _print_list(scripts)
@@ -74,11 +81,14 @@ def main(argv: list[str] | None = None) -> None:
     if extra_args and extra_args[0] == "--":
         extra_args = extra_args[1:]
 
+    editable = None if parsed.no_editable else (config.editable or None)
+
     exit_code = run_script(
         script,
         all_scripts=scripts,
         extra_args=extra_args or None,
         verbose=parsed.verbose,
+        editable=editable,
     )
     sys.exit(exit_code)
 

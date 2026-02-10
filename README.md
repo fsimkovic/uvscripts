@@ -98,17 +98,36 @@ help = "Deploy to production"
 | `env`  | table of strings  | no       | Environment variables (overlays current) |
 | `help` | string            | no       | Description shown in `--list` output     |
 
+### Editable installs
+
+For monorepos with multiple packages, you can configure editable installs under `[tool.uvs]`. These are passed as `--with-editable` flags to every `uv run` invocation, so local packages take priority over PyPI versions:
+
+```toml
+[tool.uvs]
+editable = ["../shared-lib", "../auth-service"]
+
+[tool.uvs.scripts]
+test = "pytest tests/ -v"
+```
+
+Paths are resolved relative to the `pyproject.toml` directory. To skip editable installs for a single run, use `--no-editable`:
+
+```bash
+uvs --no-editable test
+```
+
 ## Usage
 
 ```
 uvs [options] <script> [-- extra-args...]
 ```
 
-| Flag              | Description                       |
-|-------------------|-----------------------------------|
-| `-l`, `--list`    | List all available scripts        |
-| `-v`, `--verbose` | Print each command before running |
-| `-V`, `--version` | Show version and exit             |
+| Flag              | Description                           |
+|-------------------|---------------------------------------|
+| `-l`, `--list`    | List all available scripts            |
+| `-v`, `--verbose` | Print each command before running     |
+| `--no-editable`   | Ignore editable installs from config  |
+| `-V`, `--version` | Show version and exit                 |
 
 ### Passing extra arguments
 

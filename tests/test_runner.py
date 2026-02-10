@@ -137,3 +137,55 @@ class TestRunScript:
         run_script(scripts["all"], scripts)
         call_kwargs = mock_run.call_args[1]
         assert call_kwargs["env"]["FLASK_DEBUG"] == "1"
+
+    @patch("uv_script.runner.subprocess.run")
+    def test_editable_flags_in_command(self, mock_run, simple_scripts):
+        mock_run.return_value.returncode = 0
+        run_script(
+            simple_scripts["test"],
+            simple_scripts,
+            editable=["/path/to/pkg1", "/path/to/pkg2"],
+        )
+        call_args = mock_run.call_args[0][0]
+        assert call_args == [
+            "uv", "run",
+            "--with-editable", "/path/to/pkg1",
+            "--with-editable", "/path/to/pkg2",
+            "pytest", "tests/",
+        ]
+
+    @patch("uv_script.runner.subprocess.run")
+    def test_no_editable_no_flags(self, mock_run, simple_scripts):
+        mock_run.return_value.returncode = 0
+        run_script(simple_scripts["test"], simple_scripts)
+        call_args = mock_run.call_args[0][0]
+        assert call_args == ["uv", "run", "pytest", "tests/"]
+
+    @patch("uv_script.runner.subprocess.run")
+    def test_editable_with_extra_args(self, mock_run, simple_scripts):
+        mock_run.return_value.returncode = 0
+        run_script(
+            simple_scripts["test"],
+            simple_scripts,
+            extra_args=["-k", "foo"],
+            editable=["/pkg1"],
+        )
+        call_args = mock_run.call_args[0][0]
+        assert call_args == [
+            "uv", "run",
+            "--with-editable", "/pkg1",
+            "pytest", "tests/", "-k", "foo",
+        ]
+
+    @patch("uv_script.runner.subprocess.run")
+    def test_editable_applied_to_all_composite_steps(self, mock_run, simple_scripts):
+        mock_run.return_value.returncode = 0
+        run_script(
+            simple_scripts["check"],
+            simple_scripts,
+            editable=["/pkg1"],
+        )
+        assert mock_run.call_count == 2
+        for call in mock_run.call_args_list:
+            cmd = call[0][0]
+            assert cmd[0:4] == ["uv", "run", "--with-editable", "/pkg1"]

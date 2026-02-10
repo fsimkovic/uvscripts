@@ -85,3 +85,46 @@ class TestRunIntegration:
         assert exc_info.value.code == 0
         call_args = mock_run.call_args[0][0]
         assert call_args == ["uv", "run", "pytest", "tests/", "-k", "foo"]
+
+
+class TestEditable:
+    @pytest.fixture
+    def editable_project(self, tmp_path, monkeypatch):
+        """Create a temp project with editable config."""
+        pkg1 = tmp_path / "pkg1"
+        pkg1.mkdir()
+        project = tmp_path / "project"
+        project.mkdir()
+        toml = project / "pyproject.toml"
+        toml.write_text(
+            '[tool.uvs]\n'
+            'editable = ["../pkg1"]\n'
+            '\n'
+            '[tool.uvs.scripts]\n'
+            'test = "pytest tests/"\n'
+        )
+        monkeypatch.chdir(project)
+        return tmp_path
+
+    @patch("uv_script.runner.subprocess.run")
+    def test_editable_from_config(self, mock_run, editable_project):
+        mock_run.return_value.returncode = 0
+        pkg1 = editable_project / "pkg1"
+        with pytest.raises(SystemExit) as exc_info:
+            main(["test"])
+        assert exc_info.value.code == 0
+        call_args = mock_run.call_args[0][0]
+        assert call_args == [
+            "uv", "run",
+            "--with-editable", str(pkg1.resolve()),
+            "pytest", "tests/",
+        ]
+
+    @patch("uv_script.runner.subprocess.run")
+    def test_no_editable_flag_disables(self, mock_run, editable_project):
+        mock_run.return_value.returncode = 0
+        with pytest.raises(SystemExit) as exc_info:
+            main(["--no-editable", "test"])
+        assert exc_info.value.code == 0
+        call_args = mock_run.call_args[0][0]
+        assert call_args == ["uv", "run", "pytest", "tests/"]

@@ -2,7 +2,7 @@
 
 import pytest
 
-from uv_script.config import ConfigError, ScriptDef, _parse_script, find_pyproject, load_scripts
+from uv_script.config import ConfigError, ScriptDef, UvsConfig, _parse_script, find_pyproject, load_config
 
 
 class TestParseScript:
@@ -70,7 +70,7 @@ class TestFindPyproject:
             find_pyproject(empty)
 
 
-class TestLoadScripts:
+class TestLoadConfig:
     def test_loads_all_forms(self, tmp_path):
         toml = tmp_path / "pyproject.toml"
         toml.write_text(
@@ -82,7 +82,9 @@ class TestLoadScripts:
             'cmd = "flask run"\n'
             'help = "Run server"\n'
         )
-        scripts = load_scripts(toml)
+        config = load_config(toml)
+        assert isinstance(config, UvsConfig)
+        scripts = config.scripts
         assert "test" in scripts
         assert "check" in scripts
         assert "serve" in scripts
@@ -94,10 +96,56 @@ class TestLoadScripts:
         toml = tmp_path / "pyproject.toml"
         toml.write_text("[project]\nname = 'test'\n")
         with pytest.raises(ConfigError, match="No \\[tool.uvs.scripts\\] section"):
-            load_scripts(toml)
+            load_config(toml)
 
     def test_empty_scripts_section_raises(self, tmp_path):
         toml = tmp_path / "pyproject.toml"
         toml.write_text("[tool.uvs.scripts]\n")
         with pytest.raises(ConfigError, match="No \\[tool.uvs.scripts\\] section"):
-            load_scripts(toml)
+            load_config(toml)
+
+    def test_editable_paths_resolved_relative_to_pyproject(self, tmp_path):
+        project = tmp_path / "project"
+        project.mkdir()
+        pkg1 = tmp_path / "pkg1"
+        pkg1.mkdir()
+        toml = project / "pyproject.toml"
+        toml.write_text(
+            '[tool.uvs]\n'
+            'editable = ["../pkg1"]\n'
+            '\n'
+            '[tool.uvs.scripts]\n'
+            'test = "pytest"\n'
+        )
+        config = load_config(toml)
+        assert config.editable == [str(pkg1.resolve())]
+
+    def test_no_editable_defaults_to_empty(self, tmp_path):
+        toml = tmp_path / "pyproject.toml"
+        toml.write_text('[tool.uvs.scripts]\ntest = "pytest"\n')
+        config = load_config(toml)
+        assert config.editable == []
+
+    def test_editable_not_a_list_raises(self, tmp_path):
+        toml = tmp_path / "pyproject.toml"
+        toml.write_text(
+            '[tool.uvs]\n'
+            'editable = "../pkg1"\n'
+            '\n'
+            '[tool.uvs.scripts]\n'
+            'test = "pytest"\n'
+        )
+        with pytest.raises(ConfigError, match="must be an array"):
+            load_config(toml)
+
+    def test_editable_non_string_item_raises(self, tmp_path):
+        toml = tmp_path / "pyproject.toml"
+        toml.write_text(
+            '[tool.uvs]\n'
+            'editable = [123]\n'
+            '\n'
+            '[tool.uvs.scripts]\n'
+            'test = "pytest"\n'
+        )
+        with pytest.raises(ConfigError, match="must be strings"):
+            load_config(toml)

@@ -15,6 +15,7 @@ def run_script(
     all_scripts: dict[str, ScriptDef],
     extra_args: list[str] | None = None,
     verbose: bool = False,
+    editable: list[str] | None = None,
 ) -> int:
     """Execute a script definition. Returns exit code (0 = success)."""
     steps = resolve_steps(script, all_scripts)
@@ -23,7 +24,7 @@ def run_script(
         if extra_args and i == len(steps) - 1:
             cmd_str = cmd_str + " " + " ".join(shlex.quote(a) for a in extra_args)
 
-        exit_code = _exec_one(cmd_str, env, verbose)
+        exit_code = _exec_one(cmd_str, env, verbose, editable=editable)
         if exit_code != 0:
             return exit_code
 
@@ -60,10 +61,18 @@ def resolve_steps(
     return result
 
 
-def _exec_one(cmd_str: str, env: dict[str, str], verbose: bool) -> int:
+def _exec_one(
+    cmd_str: str,
+    env: dict[str, str],
+    verbose: bool,
+    editable: list[str] | None = None,
+) -> int:
     """Execute a single command string via uv run."""
     parts = shlex.split(cmd_str)
-    full_cmd = ["uv", "run"] + parts
+    editable_flags: list[str] = []
+    for path in editable or []:
+        editable_flags.extend(["--with-editable", path])
+    full_cmd = ["uv", "run"] + editable_flags + parts
 
     if verbose:
         env_prefix = " ".join(f"{k}={shlex.quote(v)}" for k, v in env.items())

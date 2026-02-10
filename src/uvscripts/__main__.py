@@ -1,3 +1,3 @@
-from uv_scripts.cli import main
+from uvscripts.cli import main
 
 main()

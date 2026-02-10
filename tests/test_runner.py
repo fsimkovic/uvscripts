@@ -1,11 +1,11 @@
-"""Tests for uv_scripts.runner."""
+"""Tests for uvscripts.runner."""
 
 from unittest.mock import patch
 
 import pytest
 
-from uv_scripts.config import ConfigError, ScriptDef
-from uv_scripts.runner import resolve_steps, run_script
+from uvscripts.config import ConfigError, ScriptDef
+from uvscripts.runner import resolve_steps, run_script
 
 
 @pytest.fixture
@@ -77,7 +77,7 @@ class TestResolveSteps:
 
 
 class TestRunScript:
-    @patch("uv_scripts.runner.subprocess.run")
+    @patch("uvscripts.runner.subprocess.run")
     def test_delegates_to_uv_run(self, mock_run, simple_scripts):
         mock_run.return_value.returncode = 0
         exit_code = run_script(simple_scripts["test"], simple_scripts)
@@ -86,28 +86,28 @@ class TestRunScript:
         call_args = mock_run.call_args[0][0]
         assert call_args == ["uv", "run", "pytest", "tests/"]
 
-    @patch("uv_scripts.runner.subprocess.run")
+    @patch("uvscripts.runner.subprocess.run")
     def test_stops_on_failure(self, mock_run, simple_scripts):
         mock_run.return_value.returncode = 1
         exit_code = run_script(simple_scripts["check"], simple_scripts)
         assert exit_code == 1
         assert mock_run.call_count == 1
 
-    @patch("uv_scripts.runner.subprocess.run")
+    @patch("uvscripts.runner.subprocess.run")
     def test_chains_on_success(self, mock_run, simple_scripts):
         mock_run.return_value.returncode = 0
         exit_code = run_script(simple_scripts["check"], simple_scripts)
         assert exit_code == 0
         assert mock_run.call_count == 2
 
-    @patch("uv_scripts.runner.subprocess.run")
+    @patch("uvscripts.runner.subprocess.run")
     def test_extra_args_appended_to_last(self, mock_run, simple_scripts):
         mock_run.return_value.returncode = 0
         run_script(simple_scripts["test"], simple_scripts, extra_args=["-k", "foo"])
         call_args = mock_run.call_args[0][0]
         assert call_args == ["uv", "run", "pytest", "tests/", "-k", "foo"]
 
-    @patch("uv_scripts.runner.subprocess.run")
+    @patch("uvscripts.runner.subprocess.run")
     def test_env_vars_merged(self, mock_run):
         mock_run.return_value.returncode = 0
         script = ScriptDef(name="s", commands=["echo"], env={"MY_VAR": "hello"})
@@ -115,7 +115,7 @@ class TestRunScript:
         call_kwargs = mock_run.call_args[1]
         assert call_kwargs["env"]["MY_VAR"] == "hello"
 
-    @patch("uv_scripts.runner.subprocess.run")
+    @patch("uvscripts.runner.subprocess.run")
     def test_no_env_passes_none(self, mock_run):
         mock_run.return_value.returncode = 0
         script = ScriptDef(name="s", commands=["echo"])
@@ -123,7 +123,7 @@ class TestRunScript:
         call_kwargs = mock_run.call_args[1]
         assert call_kwargs["env"] is None
 
-    @patch("uv_scripts.runner.subprocess.run")
+    @patch("uvscripts.runner.subprocess.run")
     def test_composite_uses_referenced_env(self, mock_run):
         mock_run.return_value.returncode = 0
         scripts = {

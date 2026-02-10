@@ -7,7 +7,7 @@ import shlex
 import subprocess
 import sys
 
-from uv_scripts.config import ConfigError, ScriptDef
+from uvscripts.config import ConfigError, ScriptDef
 
 
 def run_script(

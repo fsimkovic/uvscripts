@@ -1,6 +1,6 @@
-# uv-scripts
+# uvscripts
 
-[![PyPI](https://img.shields.io/pypi/v/uv-scripts)](https://pypi.org/project/uv-scripts/)
+[![PyPI](https://img.shields.io/pypi/v/uvscripts)](https://pypi.org/project/uvscripts/)
 
 A lightweight, zero-dependency script runner for [uv](https://docs.astral.sh/uv/). Define project scripts in `pyproject.toml` and run them through `uv run`.
 
@@ -24,10 +24,10 @@ uv is a fantastic package manager but has no built-in task runner. If you've bee
 
 ```bash
 # As a dev dependency in your project
-uv add --dev uv-scripts
+uv add --dev uvscripts
 
 # Or run without installing
-uvx uv-scripts --list
+uvx uvscripts --list
 ```
 
 ## Quick start
@@ -140,7 +140,7 @@ There is no magic — `uvs test` is equivalent to typing `uv run pytest tests/ -
 This project uses `uvs` to manage its own scripts:
 
 ```bash
-git clone <repo-url> && cd uv-scripts
+git clone <repo-url> && cd uvscripts
 uv sync
 uvs test       # run tests
 uvs lint       # run linter

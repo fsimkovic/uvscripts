@@ -1,5 +1,5 @@
 [project]
-name = "uv-scripts"
+name = "uvscripts"
 version = "0.1.2"
 description = "A lightweight script runner for uv — define and run project scripts from pyproject.toml"
 readme = "README.md"

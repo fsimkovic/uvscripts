@@ -81,7 +81,6 @@ def main(argv: list[str] | None = None) -> None:
 
     script = scripts[parsed.script]
 
-    # Strip leading '--' from extra args if present
     extra_args = parsed.args
     if extra_args and extra_args[0] == "--":
         extra_args = extra_args[1:]
@@ -101,7 +100,6 @@ def main(argv: list[str] | None = None) -> None:
 
 
 def _print_list(scripts: dict[str, ScriptDef]) -> None:
-    """Print a formatted list of available scripts."""
     if not scripts:
         print("No scripts defined.")
         return

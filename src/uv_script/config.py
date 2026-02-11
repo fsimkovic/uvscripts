@@ -49,7 +49,7 @@ def load_config(pyproject_path: Path | None = None) -> UvsConfig:
     path = pyproject_path or find_pyproject()
     project_dir = path.parent
 
-    with open(path, "rb") as f:
+    with path.open("rb") as f:
         data = tomllib.load(f)
 
     uvs_table = data.get("tool", {}).get("uvs", {})

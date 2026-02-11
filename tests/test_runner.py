@@ -257,3 +257,19 @@ class TestRunScript:
         for call in mock_run.call_args_list:
             cmd = call[0][0]
             assert cmd[0:4] == ["uv", "run", "--extra", "speedups"]
+
+    @patch("uv_script.runner.subprocess.run")
+    def test_verbose_prints_command_to_stderr(self, mock_run, simple_scripts, capsys):
+        mock_run.return_value.returncode = 0
+        run_script(simple_scripts["test"], simple_scripts, verbose=True)
+        err = capsys.readouterr().err
+        assert "$ uv run pytest tests/" in err
+
+    @patch("uv_script.runner.subprocess.run")
+    def test_verbose_with_env_prints_env_prefix(self, mock_run, capsys):
+        mock_run.return_value.returncode = 0
+        script = ScriptDef(name="s", commands=["echo"], env={"MY_VAR": "hello"})
+        run_script(script, {"s": script}, verbose=True)
+        err = capsys.readouterr().err
+        assert "MY_VAR=" in err
+        assert "uv run echo" in err

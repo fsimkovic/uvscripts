@@ -189,3 +189,49 @@ class TestRunScript:
         for call in mock_run.call_args_list:
             cmd = call[0][0]
             assert cmd[0:4] == ["uv", "run", "--with-editable", "/pkg1"]
+
+    @patch("uv_script.runner.subprocess.run")
+    def test_features_flags_in_command(self, mock_run, simple_scripts):
+        mock_run.return_value.returncode = 0
+        run_script(
+            simple_scripts["test"],
+            simple_scripts,
+            features=["speedups", "cli"],
+        )
+        call_args = mock_run.call_args[0][0]
+        assert call_args == [
+            "uv", "run",
+            "--extra", "speedups",
+            "--extra", "cli",
+            "pytest", "tests/",
+        ]
+
+    @patch("uv_script.runner.subprocess.run")
+    def test_features_with_editable(self, mock_run, simple_scripts):
+        mock_run.return_value.returncode = 0
+        run_script(
+            simple_scripts["test"],
+            simple_scripts,
+            editable=["/pkg1"],
+            features=["speedups"],
+        )
+        call_args = mock_run.call_args[0][0]
+        assert call_args == [
+            "uv", "run",
+            "--with-editable", "/pkg1",
+            "--extra", "speedups",
+            "pytest", "tests/",
+        ]
+
+    @patch("uv_script.runner.subprocess.run")
+    def test_features_applied_to_all_composite_steps(self, mock_run, simple_scripts):
+        mock_run.return_value.returncode = 0
+        run_script(
+            simple_scripts["check"],
+            simple_scripts,
+            features=["speedups"],
+        )
+        assert mock_run.call_count == 2
+        for call in mock_run.call_args_list:
+            cmd = call[0][0]
+            assert cmd[0:4] == ["uv", "run", "--extra", "speedups"]

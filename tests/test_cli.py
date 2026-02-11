@@ -87,6 +87,45 @@ class TestRunIntegration:
         assert call_args == ["uv", "run", "pytest", "tests/", "-k", "foo"]
 
 
+class TestFeatures:
+    @pytest.fixture
+    def features_project(self, tmp_path, monkeypatch):
+        """Create a temp project with features config."""
+        toml = tmp_path / "pyproject.toml"
+        toml.write_text(
+            '[tool.uvs]\n'
+            'features = ["speedups", "cli"]\n'
+            '\n'
+            '[tool.uvs.scripts]\n'
+            'test = "pytest tests/"\n'
+        )
+        monkeypatch.chdir(tmp_path)
+        return tmp_path
+
+    @patch("uv_script.runner.subprocess.run")
+    def test_features_from_config(self, mock_run, features_project):
+        mock_run.return_value.returncode = 0
+        with pytest.raises(SystemExit) as exc_info:
+            main(["test"])
+        assert exc_info.value.code == 0
+        call_args = mock_run.call_args[0][0]
+        assert call_args == [
+            "uv", "run",
+            "--extra", "speedups",
+            "--extra", "cli",
+            "pytest", "tests/",
+        ]
+
+    @patch("uv_script.runner.subprocess.run")
+    def test_no_features_flag_disables(self, mock_run, features_project):
+        mock_run.return_value.returncode = 0
+        with pytest.raises(SystemExit) as exc_info:
+            main(["--no-features", "test"])
+        assert exc_info.value.code == 0
+        call_args = mock_run.call_args[0][0]
+        assert call_args == ["uv", "run", "pytest", "tests/"]
+
+
 class TestEditable:
     @pytest.fixture
     def editable_project(self, tmp_path, monkeypatch):

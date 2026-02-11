@@ -1,0 +1,7 @@
+update the claude md to outline that a version bump should be
+
+1. update the version in pyproject.toml
+2. commit the new version
+3. tag the commit with a tag matching the version
+4. push the commit and tag upstreadm
+5. create new release for the created tag

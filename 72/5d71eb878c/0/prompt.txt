@@ -1,0 +1,33 @@
+review this document https://docs.astral.sh/uv/concepts/projects/dependencies/. then, review how our features are implemented. are there any features that we could do better or more uv native?
+
+---
+
+what is the difference between depedency groups and optional dependencies
+
+---
+
+[Request interrupted by user for tool use]
+
+---
+
+I want to remove the features section and just have all groups and all extras installed.
+
+---
+
+[Request interrupted by user]
+
+---
+
+fix the broken tests
+
+---
+
+get a code review. run the integration tests.
+
+---
+
+commit this
+
+---
+
+release a new patch version
